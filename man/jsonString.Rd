@@ -2,19 +2,883 @@
 % Please edit documentation in R/jsonStrings.R
 \name{jsonString}
 \alias{jsonString}
-\title{JSON string}
-\usage{
-jsonString(string)
-}
-\arguments{
-\item{string}{a character string}
-}
-\value{
-A JSON string (external pointer).
-}
+\title{R6 class to represent a JSON string}
 \description{
-Create a JSON string.
+R6 class to represent a JSON string.
 }
 \examples{
-jsonString("[1,[\"a\",99],{\"x\":[2,3,4],\"y\":42}]")
+
+## ------------------------------------------------
+## Method `jsonString$new`
+## ------------------------------------------------
+
+jstring <- jsonString$new(
+  "[1, [\"a\", 99], {\"x\": [2,3,4], \"y\": 42}]"
+)
+jstring$prettyPrint
+jstring
+jstring$prettyPrint <- FALSE
+jstring
+jstring <- "[1, [\"a\", 99], {\"x\": [2,3,4], \"y\": 42}]"
+jsonString$new(jstring)
+
+## ------------------------------------------------
+## Method `jsonString$print`
+## ------------------------------------------------
+
+jstring <- jsonString$new(
+  "[1, [\"a\", 99], {\"x\": [2,3,4], \"y\": 42}]"
+)
+jstring
+jstring$prettyPrint <- FALSE
+jstring
+
+## ------------------------------------------------
+## Method `jsonString$asString`
+## ------------------------------------------------
+
+jstring <- jsonString$new(
+  "[1, [\"a\", 99], {\"x\": [2,3,4], \"y\": 42}]"
+)
+cat(jstring$asString())
+cat(jstring$asString(pretty = TRUE))
+
+## ------------------------------------------------
+## Method `jsonString$at`
+## ------------------------------------------------
+
+jstring <- jsonString$new(
+  "[1, [\"a\", 99], {\"x\": [2,3,4], \"y\": 42}]"
+)
+jstring$at(1)
+jstring$at(2, "x")
+
+## ------------------------------------------------
+## Method `jsonString$hasKey`
+## ------------------------------------------------
+
+jstring <- jsonString$new(
+  "[1, [\"a\", 99], {\"x\": [2,3,4], \"y\": 42}]"
+)
+jstring$hasKey("x")
+jstring <- jsonString$new(
+  "{\"x\": [2,3,4], \"y\": 42}"
+)
+jstring$hasKey("x")
+
+## ------------------------------------------------
+## Method `jsonString$keys`
+## ------------------------------------------------
+
+jstring <- jsonString$new(
+  "{\"x\": [2,3,4], \"y\": 42}"
+)
+jstring$keys()
+
+## ------------------------------------------------
+## Method `jsonString$addProperty`
+## ------------------------------------------------
+
+jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":\"hello\"}"
+)
+ppty <- jsonString$new("[9, 99]")
+jstring$addProperty("c", ppty)
+jstring
+jstring$addProperty("d", "null")
+jstring
+
+## ------------------------------------------------
+## Method `jsonString$erase`
+## ------------------------------------------------
+
+jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":\"hello\"}"
+)
+jstring$erase("b")
+jstring
+jstring <- jsonString$new("[1, 2, 3, 4, 5]")
+jstring$erase(2)
+jstring
+
+## ------------------------------------------------
+## Method `jsonString$size`
+## ------------------------------------------------
+
+jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":\"hello\"}"
+)
+jstring$size()
+
+## ------------------------------------------------
+## Method `jsonString$update`
+## ------------------------------------------------
+
+jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":\"hello\"}"
+)
+jstring2 <- "{\"a\":[4,5,6],\"c\":\"goodbye\"}"
+jstring$update(jstring2)
+jstring
+
+## ------------------------------------------------
+## Method `jsonString$merge`
+## ------------------------------------------------
+
+jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":\"hello\"}"
+)
+jstring2 <- "{\"a\":[4,5,6],\"c\":\"goodbye\"}"
+jstring$merge(jstring2)
+jstring
+
+## ------------------------------------------------
+## Method `jsonString$patch`
+## ------------------------------------------------
+
+jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":\"hello\"}"
+)
+jspatch <- "[
+  {\"op\": \"remove\", \"path\": \"/a\"},
+  {\"op\": \"replace\", \"path\": \"/b\", \"value\": null}
+]"
+jstring$patch(jspatch)
+
+## ------------------------------------------------
+## Method `jsonString$push`
+## ------------------------------------------------
+
+jstring <- jsonString$new("[1, 2, 3, 4, 5]")
+jstring2 <- jsonString$new(
+  "{\"a\":[4,5,6],\"c\":\"goodbye\"}"
+ )
+jstring$push(jstring2)
+jstring
+
+## ------------------------------------------------
+## Method `jsonString$is`
+## ------------------------------------------------
+
+jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":\"hello\"}"
+)
+jstring$is("object")
+jstring$is("array")
+jstring <- jsonString$new("999")
+jstring$is("integer")
+jstring$is("number")
+jstring$is("float")
+
+## ------------------------------------------------
+## Method `jsonString$type`
+## ------------------------------------------------
+
+jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":\"hello\"}"
+)
+jstring$type()
+jstring <- jsonString$new("999")
+jstring$type()
+
+## ------------------------------------------------
+## Method `jsonString$flatten`
+## ------------------------------------------------
+
+jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":{\"x\":\"hello\",\"y\":\"hi\"}}"
+)
+jstring$flatten()
+
+## ------------------------------------------------
+## Method `jsonString$unflatten`
+## ------------------------------------------------
+
+folder <- system.file(package = "jsonStrings")
+files <- list.files(folder, recursive = TRUE)
+sizes <- file.size(file.path(folder, files))
+files <- sprintf('"\%s"', paste0("/", files))
+string <- sprintf("{\%s}", paste0(files, ":", sizes, collapse = ","))
+jstring <- jsonString$new(string)
+jstring$unflatten()
+
+## ------------------------------------------------
+## Method `jsonString$writeFile`
+## ------------------------------------------------
+
+jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":\"hello\"}"
+)
+jsonfile <- tempfile(fileext = ".json")
+jstring$writeFile(jsonfile)
+cat(readLines(jsonfile), sep = "\n")
+jsonString$new(jsonfile)
+
+## ------------------------------------------------
+## Method `jsonString$copy`
+## ------------------------------------------------
+
+jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":\"hello\"}"
+)
+copy <- jstring$copy()
+copy$erase("b")
+jstring
+naive_copy <- jstring
+naive_copy$erase("b")
+jstring
+}
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
+\describe{
+\item{\code{prettyPrint}}{get or set the value of \code{prettyPrint}}
+}
+\if{html}{\out{</div>}}
+}
+\section{Methods}{
+\subsection{Public methods}{
+\itemize{
+\item \href{#method-new}{\code{jsonString$new()}}
+\item \href{#method-print}{\code{jsonString$print()}}
+\item \href{#method-asString}{\code{jsonString$asString()}}
+\item \href{#method-at}{\code{jsonString$at()}}
+\item \href{#method-hasKey}{\code{jsonString$hasKey()}}
+\item \href{#method-keys}{\code{jsonString$keys()}}
+\item \href{#method-addProperty}{\code{jsonString$addProperty()}}
+\item \href{#method-erase}{\code{jsonString$erase()}}
+\item \href{#method-size}{\code{jsonString$size()}}
+\item \href{#method-update}{\code{jsonString$update()}}
+\item \href{#method-merge}{\code{jsonString$merge()}}
+\item \href{#method-patch}{\code{jsonString$patch()}}
+\item \href{#method-push}{\code{jsonString$push()}}
+\item \href{#method-is}{\code{jsonString$is()}}
+\item \href{#method-type}{\code{jsonString$type()}}
+\item \href{#method-flatten}{\code{jsonString$flatten()}}
+\item \href{#method-unflatten}{\code{jsonString$unflatten()}}
+\item \href{#method-writeFile}{\code{jsonString$writeFile()}}
+\item \href{#method-copy}{\code{jsonString$copy()}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-new"></a>}}
+\if{latex}{\out{\hypertarget{method-new}{}}}
+\subsection{Method \code{new()}}{
+Creates a new \code{jsonString} object.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{jsonString$new(string)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{string}}{a string representing a JSON object, or the path to a 
+JSON file}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A \code{jsonString} object.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{jstring <- jsonString$new(
+  "[1, [\"a\", 99], {\"x\": [2,3,4], \"y\": 42}]"
+)
+jstring$prettyPrint
+jstring
+jstring$prettyPrint <- FALSE
+jstring
+}
+\if{html}{\out{</div>}}
+
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{jstring <- "[1, [\"a\", 99], {\"x\": [2,3,4], \"y\": 42}]"
+jsonString$new(jstring)
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-print"></a>}}
+\if{latex}{\out{\hypertarget{method-print}{}}}
+\subsection{Method \code{print()}}{
+Print a \code{jsonString} object.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{jsonString$print(...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{...}}{ignored}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{jstring <- jsonString$new(
+  "[1, [\"a\", 99], {\"x\": [2,3,4], \"y\": 42}]"
+)
+jstring
+jstring$prettyPrint <- FALSE
+jstring
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-asString"></a>}}
+\if{latex}{\out{\hypertarget{method-asString}{}}}
+\subsection{Method \code{asString()}}{
+Converts a \code{jsonString} to a character string.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{jsonString$asString(pretty = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{pretty}}{Boolean, whether to get a pretty string}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A string.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{jstring <- jsonString$new(
+  "[1, [\"a\", 99], {\"x\": [2,3,4], \"y\": 42}]"
+)
+cat(jstring$asString())
+cat(jstring$asString(pretty = TRUE))
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-at"></a>}}
+\if{latex}{\out{\hypertarget{method-at}{}}}
+\subsection{Method \code{at()}}{
+Extract an element in a JSON string by giving a path of 
+  keys or indices.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{jsonString$at(...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{...}}{the elements forming the path, integers or strings}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A \code{jsonString} object.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{jstring <- jsonString$new(
+  "[1, [\"a\", 99], {\"x\": [2,3,4], \"y\": 42}]"
+)
+jstring$at(1)
+jstring$at(2, "x")
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-hasKey"></a>}}
+\if{latex}{\out{\hypertarget{method-hasKey}{}}}
+\subsection{Method \code{hasKey()}}{
+Checks whether a key exists in the reference JSON string.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{jsonString$hasKey(key)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{key}}{a string}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A Boolean value.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{jstring <- jsonString$new(
+  "[1, [\"a\", 99], {\"x\": [2,3,4], \"y\": 42}]"
+)
+jstring$hasKey("x")
+jstring <- jsonString$new(
+  "{\"x\": [2,3,4], \"y\": 42}"
+)
+jstring$hasKey("x")
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-keys"></a>}}
+\if{latex}{\out{\hypertarget{method-keys}{}}}
+\subsection{Method \code{keys()}}{
+Get the keys of the reference JSON string (if it represents 
+  an object).
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{jsonString$keys()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+A character vector.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{jstring <- jsonString$new(
+  "{\"x\": [2,3,4], \"y\": 42}"
+)
+jstring$keys()
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-addProperty"></a>}}
+\if{latex}{\out{\hypertarget{method-addProperty}{}}}
+\subsection{Method \code{addProperty()}}{
+Add a new property to the reference JSON string (if it 
+  represents an object).
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{jsonString$addProperty(key, value)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{key}}{a character string, the key of the new property}
+
+\item{\code{value}}{a JSON string, either a \code{jsonString} object or a 
+string}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+This updates the reference JSON string and this returns it 
+ invisibly.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":\"hello\"}"
+)
+ppty <- jsonString$new("[9, 99]")
+jstring$addProperty("c", ppty)
+jstring
+jstring$addProperty("d", "null")
+jstring
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-erase"></a>}}
+\if{latex}{\out{\hypertarget{method-erase}{}}}
+\subsection{Method \code{erase()}}{
+Erase an object property or an array element from the 
+  reference JSON string.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{jsonString$erase(at)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{at}}{either a character string, the key of the property to be erased, 
+or an integer, the index of the array element to be erased}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+This invisibly returns the updated reference JSON string.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":\"hello\"}"
+)
+jstring$erase("b")
+jstring
+jstring <- jsonString$new("[1, 2, 3, 4, 5]")
+jstring$erase(2)
+jstring
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-size"></a>}}
+\if{latex}{\out{\hypertarget{method-size}{}}}
+\subsection{Method \code{size()}}{
+Number of elements in the reference JSON string.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{jsonString$size()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+An integer.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":\"hello\"}"
+)
+jstring$size()
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-update"></a>}}
+\if{latex}{\out{\hypertarget{method-update}{}}}
+\subsection{Method \code{update()}}{
+Update the reference JSON string (if it 
+  represents an object).
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{jsonString$update(jstring)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{jstring}}{a JSON string representing an object, either a 
+\code{jsonString} object or a string}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+This invisibly returns the updated reference JSON string.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":\"hello\"}"
+)
+jstring2 <- "{\"a\":[4,5,6],\"c\":\"goodbye\"}"
+jstring$update(jstring2)
+jstring
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-merge"></a>}}
+\if{latex}{\out{\hypertarget{method-merge}{}}}
+\subsection{Method \code{merge()}}{
+Merge the reference JSON string (if it 
+  represents an object).
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{jsonString$merge(jstring)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{jstring}}{a JSON string, either a \code{jsonString} object or a 
+string representing a JSON object}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+This invisibly returns the updated reference JSON string.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":\"hello\"}"
+)
+jstring2 <- "{\"a\":[4,5,6],\"c\":\"goodbye\"}"
+jstring$merge(jstring2)
+jstring
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-patch"></a>}}
+\if{latex}{\out{\hypertarget{method-patch}{}}}
+\subsection{Method \code{patch()}}{
+Apply a JSON patch to the reference JSON string (if it 
+  represents an array or an object).
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{jsonString$patch(jspatch)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{jspatch}}{a JSON patch, a JSON string representing an array (see 
+the link in details); it could be either a \code{jsonString} object or 
+a string}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Details}{
+See \href{http://jsonpatch.com/}{jsonpatch.com}.
+}
+
+\subsection{Returns}{
+A new \code{jsonString} object.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":\"hello\"}"
+)
+jspatch <- "[
+  {\"op\": \"remove\", \"path\": \"/a\"},
+  {\"op\": \"replace\", \"path\": \"/b\", \"value\": null}
+]"
+jstring$patch(jspatch)
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-push"></a>}}
+\if{latex}{\out{\hypertarget{method-push}{}}}
+\subsection{Method \code{push()}}{
+Append an element to the reference JSON string (if it 
+  represents an array).
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{jsonString$push(jstring)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{jstring}}{a JSON string, either a \code{jsonString} object or a 
+string representing a JSON object}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+This invisibly returns the updated reference JSON string.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{jstring <- jsonString$new("[1, 2, 3, 4, 5]")
+jstring2 <- jsonString$new(
+  "{\"a\":[4,5,6],\"c\":\"goodbye\"}"
+ )
+jstring$push(jstring2)
+jstring
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-is"></a>}}
+\if{latex}{\out{\hypertarget{method-is}{}}}
+\subsection{Method \code{is()}}{
+Check the type of the reference JSON string.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{jsonString$is(type)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{type}}{the type to be checked, one of \code{"array"}, \code{"object"}, 
+\code{"string"}, \code{"number"}, \code{"integer"}, \code{"float"}, 
+\code{"null"}, \code{"boolean"}}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A Boolean value.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":\"hello\"}"
+)
+jstring$is("object")
+jstring$is("array")
+jstring <- jsonString$new("999")
+jstring$is("integer")
+jstring$is("number")
+jstring$is("float")
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-type"></a>}}
+\if{latex}{\out{\hypertarget{method-type}{}}}
+\subsection{Method \code{type()}}{
+Get the type of the reference JSON string.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{jsonString$type()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+A character string indicating the type of the JSON string.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":\"hello\"}"
+)
+jstring$type()
+jstring <- jsonString$new("999")
+jstring$type()
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-flatten"></a>}}
+\if{latex}{\out{\hypertarget{method-flatten}{}}}
+\subsection{Method \code{flatten()}}{
+Flatten the reference JSON string.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{jsonString$flatten()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+A new \code{jsonString} object.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":{\"x\":\"hello\",\"y\":\"hi\"}}"
+)
+jstring$flatten()
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-unflatten"></a>}}
+\if{latex}{\out{\hypertarget{method-unflatten}{}}}
+\subsection{Method \code{unflatten()}}{
+Unflatten the reference JSON string (if it is flattened).
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{jsonString$unflatten()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+A new \code{jsonString} object.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{folder <- system.file(package = "jsonStrings")
+files <- list.files(folder, recursive = TRUE)
+sizes <- file.size(file.path(folder, files))
+files <- sprintf('"\%s"', paste0("/", files))
+string <- sprintf("{\%s}", paste0(files, ":", sizes, collapse = ","))
+jstring <- jsonString$new(string)
+jstring$unflatten()
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-writeFile"></a>}}
+\if{latex}{\out{\hypertarget{method-writeFile}{}}}
+\subsection{Method \code{writeFile()}}{
+Write the reference JSON string to a file.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{jsonString$writeFile(filename)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{filename}}{name of the file}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Nothing.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":\"hello\"}"
+)
+jsonfile <- tempfile(fileext = ".json")
+jstring$writeFile(jsonfile)
+cat(readLines(jsonfile), sep = "\n")
+jsonString$new(jsonfile)
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-copy"></a>}}
+\if{latex}{\out{\hypertarget{method-copy}{}}}
+\subsection{Method \code{copy()}}{
+Copy the reference JSON string.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{jsonString$copy()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+A new \code{jsonString} object.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{jstring <- jsonString$new(
+  "{\"a\":[1,2,3],\"b\":\"hello\"}"
+)
+copy <- jstring$copy()
+copy$erase("b")
+jstring
+naive_copy <- jstring
+naive_copy$erase("b")
+jstring
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
 }
