@@ -1,7 +1,7 @@
 Type: Package
 Package: jsonStrings
 Title: Manipulation of JSON Strings
-Version: 2.1.0
+Version: 2.1.1
 Authors@R: c(
     person("Stéphane", "Laurent", , "laurent_step@outlook.fr", role = c("aut", "cre")),
     person("Niels", "Lohmann", role = "cph",
@@ -19,8 +19,8 @@ Encoding: UTF-8
 RoxygenNote: 7.2.1
 SystemRequirements: C++17
 NeedsCompilation: yes
-Packaged: 2022-10-16 07:37:34 UTC; stla
+Packaged: 2022-11-18 14:27:31 UTC; stla
 Author: Stéphane Laurent [aut, cre],
   Niels Lohmann [cph] ('nlohmann/json' C++ library)
 Repository: CRAN
-Date/Publication: 2022-10-17 07:02:32 UTC
+Date/Publication: 2022-11-18 16:10:02 UTC
